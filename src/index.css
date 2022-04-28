@@ -1,0 +1,78 @@
+@import url('https://fonts.googleapis.com/css2?family=Gothic+A1:wght@300&display=swap');
+
+body {
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+* {
+  font-weight: 600;
+  letter-spacing: 1px;
+  font-family: 'Gothic A1', sans-serif;
+  background-color: initial;
+  color: #474747;
+  margin: 0px;
+  padding: 0px;
+  border: none;
+  outline: none;
+  text-decoration: none;
+}
+
+img {
+  width:48px;
+  height:48px;
+  border-radius: 1000px;
+}
+
+div {
+  display: flex;
+}
+
+span {
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  text-decoration: none;
+  cursor: pointer;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+h1 {
+  /* Title */
+  font-size: 20px;
+}
+h2 {
+  /* Logo Text */
+  font-size: 18px;
+}
+h3 {
+  /* Semi Title */
+  font-size: 16px;
+}
+h4 {
+  /* Icon Text */
+  font-size: 14px;
+}
+h5 {
+  /* Information Text */
+  font-size: 12px;
+}
+h6 {
+  /* Tag Text */
+  font-size: 10px;
+}
+
+/* 3D5A80 : Dark */
+/* 98C1D9 : Background */
+/* E0FBFC : Bright */
+/* EE6C4D : Point */
