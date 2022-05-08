@@ -5,6 +5,28 @@ import { getProfile } from "../firebase/firestore"
 import { IFriend, IProfile } from '../type/interface'
 import { useState,useEffect } from 'react';
 import { Link } from 'react-router-dom';
+
+function Friend({friend}:{friend:IFriend}) {
+  const svgProp = {width:20,height:20,fill:bright,style:{padding:4,margin:4}}
+  const [data,setData] = useState<IProfile | null>(null)
+  useEffect(()=>{
+    if(data === null) getProfile(friend.uid).then((result)=>{setData(result)})
+    console.log(data)
+  },[data, friend])
+
+  return (
+    <Container>
+      <div>
+        <Profile alt='profile' src={data?.img} />
+        <Name onClick={()=>{
+          sessionStorage.setItem("opp",JSON.stringify(data))
+        }} to={`/chat/${friend?.chatId}`}>{data?.name}</Name>
+      </div>
+      <SvgCircle {...svgProp} />
+    </Container>
+  )
+}
+
 const bright = '#F5F5F5';
 const dark = '#474747';
 
@@ -21,6 +43,7 @@ const Container = styled.div`
   width:80%;
   margin-top: 16px;
   margin-bottom: 16px;
+  max-width:450px;
 `
 const Profile = styled.img`
   width:36px;
@@ -36,24 +59,5 @@ const Name = styled(Link)`
   padding-left:10px;
   padding-right:10px;
 `
-
-function Friend({friend}:{friend:IFriend}) {
-  const svgProp = {width:20,height:20,fill:bright,style:{padding:4,margin:4}}
-  const [data,setData] = useState<IProfile | null>(null)
-  useEffect(()=>{
-    if(data === null) getProfile(friend.friend).then((result)=>{setData(result)})
-    console.log(friend)
-  },[data, friend])
-
-  return (
-    <Container>
-      <div>
-        <Profile alt='profile' src={data?.img} />
-        <Name to={`/chat/${friend?.id}`}>{data?.name}</Name>
-      </div>
-      <SvgCircle {...svgProp} />
-    </Container>
-  )
-}
 
 export default Friend

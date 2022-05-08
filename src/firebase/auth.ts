@@ -8,16 +8,14 @@ export const getCurrentUser = ():IProfile | null => {
   if (user !== null && user !== undefined) {
     const name = user.displayName;
     const img = user.photoURL;
-    const friendId = name+"@"+user.uid.substr(0, 8);
+    const uid = user.uid.substr(0, 8);
     if(name !== null && img !== null){
-      return { name,img,friendId }
+      return { name,img,uid }
     }
     return null
   }else{
     const user = JSON.parse(localStorage.getItem('user') || JSON.stringify(''))
-    if(user && user !== '') {
-      return user
-    }
+    if(user && user !== '') return user
     return null
   }  
 }
@@ -33,10 +31,9 @@ export const signIn = () => {
       .then(({user}:any):void => {
         const name:string = user.displayName;
         const img:string = user.photoURL;
-        const uid:string = user.uid;
-        const friendId = name+"@"+uid.substr(0, 8);
-        db.collection('user').doc(friendId).set({img}).then(()=>{
-          localStorage.setItem('user',JSON.stringify({img,name,friendId}));
+        const uid:string = user.uid.substr(0, 8);
+        db.collection('user').doc(uid).set({name,img}).then(()=>{
+          localStorage.setItem('user',JSON.stringify({img,name,uid}));
           alert('로그인 성공!');
           window.location.reload();
         }).catch(()=>{alert('사용자 정보 저장 실패')});

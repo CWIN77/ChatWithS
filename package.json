@@ -23,6 +23,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "export": "npm run build && firebase deploy --only hosting",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

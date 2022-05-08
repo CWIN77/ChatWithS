@@ -1,8 +1,112 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router';
 import styled from 'styled-components'
-import { getChat } from "../firebase/firestore"
+import { getCurrentUser } from '../firebase/auth';
+import { getChat,addChat } from "../firebase/firestore"
 import { IChat } from '../type/interface'
+import {ReactComponent as SvgBackBtn} from '../svg/backBtn.svg'
+import {ReactComponent as SvgSendBtn} from '../svg/sendBtn.svg'
+import { Link } from 'react-router-dom';
+
+function Chat() {
+  const {id} = useParams();
+  const [data,setData] = useState<IChat[] | null | "noData">(null)
+  const me = getCurrentUser()
+  const opp = JSON.parse(sessionStorage.getItem("opp") || JSON.stringify(null))
+  const backIcon = {fill:"#474747",style:{padding:8,margin:12,marginLeft:16},width:34,height:34}
+  const sendIcon = {fill:"#F5F5F5",width:28,height:28}
+  const [sendMsgText,setSendMsgText] = useState('')
+
+  useEffect(()=>{
+    if( id !== undefined ) getChat(id).then((result)=>{setData(result)})
+  },[])
+
+  return (
+    <Container>
+      <Top>
+        <Link style={{display:'flex'}} to={"/"}><SvgBackBtn {...backIcon} /></Link>
+        <div style={{marginRight:18}}>
+          <TopProfile src={me?.img} />
+          <TopProfile src={opp?.img} />
+        </div>
+      </Top>
+      
+      <span style={{paddingTop:90,paddingBottom:90,width:'100%',minHeight:"calc(100% - 180px)"}}>
+        {
+          data === null
+          ? (
+            <>
+              {/* <Chatting style={{justifyContent:'flex-end',opacity:0.7}}>
+                <Message>ㅤㅤㅤㅤㅤㅤㅤ</Message>
+                <ThumbnailProfile/>
+              </Chatting>
+              <Chatting style={{justifyContent:'flex-start',opacity:0.7}}>
+                <ThumbnailProfile/>
+                <Message>ㅤㅤㅤㅤㅤㅤㅤ</Message>
+              </Chatting>
+              <Chatting style={{justifyContent:'flex-end',opacity:0.7}}>
+                <Message>ㅤㅤㅤㅤㅤㅤㅤ</Message>
+                <ThumbnailProfile/>
+              </Chatting>
+              <Chatting style={{justifyContent:'flex-start',opacity:0.7}}>
+                <ThumbnailProfile/>
+                <Message>ㅤㅤㅤㅤㅤㅤㅤ</Message>
+              </Chatting> */}
+            </>
+          )
+          : data !== "noData" &&
+            data && data.map((data,key)=>{
+              return (
+                <Chatting style={{justifyContent:data.uid === me?.uid ? 'flex-end' : 'flex-start'}} key={key}>
+                  {
+                    data.uid === me?.uid
+                    ? (
+                      <>
+                        <Message>{data.msg}</Message>
+                        <MsgProfile src={me?.img} />
+                      </>
+                    )
+                    : (
+                      <>
+                        <MsgProfile src={opp?.img} />
+                        <Message>{data.msg}</Message>
+                      </>
+                    )
+                  }
+                </Chatting>
+              )
+            })
+        }
+      </span>
+      <SendMsg>
+        <SendMsgInput placeholder='메세지를 보내보세요!' value={sendMsgText}
+        onChange={(e)=>{
+          setSendMsgText(e.target.value)
+        }}
+        onKeyUp={(e)=>{
+          if(e.key === 'Enter'){
+            if(sendMsgText !== '' && id !== undefined && me?.uid !== undefined){
+              addChat(id,sendMsgText,me?.uid)
+              setSendMsgText('')
+            }
+          }
+        }}
+        />
+        <SendMsgBtn>
+          <SvgSendBtn {...sendIcon} onClick={()=>{
+            if(sendMsgText !== '' && id !== undefined && me?.uid !== undefined){
+              addChat(id,sendMsgText,me?.uid)
+              setSendMsgText('')
+            }
+          }} />
+        </SendMsgBtn>
+      </SendMsg>
+    </Container>
+  )
+}
+
+const bright = '#F5F5F5';
+const dark = '#474747';
 
 const Container = styled.div`
   display:flex;
@@ -11,27 +115,86 @@ const Container = styled.div`
   width:100%;
   min-height:100%;
 ` 
-function Chat() {
-  const {id} = useParams();
-  const [data,setData] = useState<IChat[] | null>()
-  useEffect(()=>{
-    if( id !== undefined ) getChat(id).then((result)=>{setData(result)})
-  },[])
-
-  useEffect(()=>{
-    console.log(data)
-  },[data])
-  return (
-    <Container>
-      {
-        data === null 
-        ? <div>error</div>
-        : data && data.map((data,key)=>{
-          return <div key={key}>{data.chat}</div>
-        })
-      }
-    </Container>
-  )
-}
+const Top = styled.nav`
+  position: absolute;
+  background-color:${bright};
+  display:flex;
+  z-index: 2;
+  width:100%;
+  height:auto;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1.5px solid rgba(0,0,0,0.2);
+`
+const TopProfile = styled.img`
+  border-radius: 100px;
+  width:36px;
+  height:36px;
+  padding:6px;
+  margin:12px;
+  margin-right:4px;
+  filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.3));
+`
+const MsgProfile = styled.img`
+  border-radius: 100px;
+  width:46px;
+  height:46px;
+  padding:6px;
+  margin:2px;
+  margin-left: 8px;
+  margin-right: 8px;
+  filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.3));
+`
+const ThumbnailProfile = styled.div`
+  border-radius: 100px;
+  width:42px;
+  height:42px;
+  padding: 2px;
+  margin:12px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  background-color: #888888;
+  filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.3));
+`
+const Chatting = styled.div`
+  width:100%;
+  display:flex;
+  align-items: center;
+`
+const Message = styled.h4`
+  word-break:break-all;
+  background-color: ${dark};
+  color:${bright};
+  padding:12px;
+  padding-left: 16px;
+  padding-right: 16px;
+  border-radius: 8px;
+  max-width: 50vw;
+`
+const SendMsg = styled.div`
+  width:calc(100% - 48px);
+  display:flex;
+  justify-content: center;
+  position:fixed;
+  bottom:0px;
+  margin: 24px;
+`
+const SendMsgInput = styled.input`
+  background-color:#474747;
+  color:#F5F5F5;
+  font-size: 16px;
+  width:100%;
+  padding:10px;
+  padding-left: 20px;
+  padding-right: 20px;
+  border-radius: 12px 0px 0px 12px;
+`
+const SendMsgBtn = styled.button`
+  padding:10px;
+  padding-left: 12px;
+  padding-right: 12px;
+  background-color:#636363;
+  border-radius: 0px 12px 12px 0px;
+`
 
 export default Chat

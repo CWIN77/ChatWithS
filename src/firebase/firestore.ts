@@ -9,13 +9,13 @@ const db = firebase.firestore();
 
 export const getFriendList = async():Promise<TFriendList> => {
   const user = getCurrentUser();
-  const query = db.collection('list').where("users", "array-contains", user?.friendId).get();
+  const query = db.collection('list').where("users", "array-contains", user?.uid).get();
   const result = await query.then((docs)=>{
     const data:IFriend[] = [];
     docs.forEach((doc:any)=>{
-      const friend:string = doc.data().users.filter((filterData:string)=>filterData !== user?.uid)[0];
-      const id:string = doc.id;
-      data.push({friend,id})
+      const uid:string = doc.data().users.filter((filterData:string)=>filterData !== user?.uid)[0];
+      const chatId:string = doc.id;
+      data.push({uid,chatId})
     })
     if(data.length !== 0) return data
     return []
@@ -25,42 +25,51 @@ export const getFriendList = async():Promise<TFriendList> => {
   return result || []
 }
 
-export const getProfile = async(friendId:string) => {
-  const query = db.collection('user').doc(friendId).get();
+export const getProfile = async(uid:string):Promise<IProfile | null> => {
+  const query = db.collection('user').doc(uid).get();
   const profileStorge:IProfile[] | [] = JSON.parse(sessionStorage.getItem('profile')||JSON.stringify([]))
-  const result = await query.then((doc:any)=>{
-    const name:string = doc.id.split('@')[0]
-    const img:string = doc.data().img
-    const friendId:string = doc.id
-    const data:IProfile = {name,img,friendId}
-    sessionStorage.setItem('profile',JSON.stringify([...profileStorge,data]))
-    // TODO: 기존 값이 있으면 스토리지에 추가 말고 기존값을 반환
-    return data
-  }).catch((err)=>{
-    alert('에러 발생\n' + err)
+  let isSetStorage:boolean|IProfile = false
+  profileStorge.forEach((data)=>{
+    if(data.uid === uid){
+      isSetStorage = {...data}
+    }
   })
-  return result || null
+  if(!isSetStorage){
+    const result = await query.then((doc:any)=>{
+      const name:string = doc.data().name
+      const img:string = doc.data().img
+      const uid:string = doc.id
+      const data:IProfile = {name,img,uid}
+      sessionStorage.setItem('profile',JSON.stringify([...profileStorge,data]))
+      return data
+    }).catch((err)=>{
+      alert('에러 발생\n' + err)
+    })
+    return result || null
+  }
+  return isSetStorage || null
 }
 
 
-export const getChat = async(id:string) => {
-  const query = db.collection("list").doc(id).collection('chat').orderBy("date", "desc").get()
+export const getChat = async(id:string):Promise<IChat[] | "noData" | null> => {
+  const query = db.collection("list").doc(id).collection('chat').orderBy("date", "desc").limit(300).get()
   const result = await query.then((docs)=>{
     const dataArray:IChat[] = []
     docs.forEach((doc:any)=>{
-      dataArray.push(doc.data())
-      // TODO: friendId로 profileStorage에서 데이터를 가져와서 병합
+      dataArray.unshift(doc.data())
     })
-    return dataArray
+    if ( dataArray.length > 0 ) return dataArray
+    return "noData"
   }).catch((err)=>{
     alert('에러 발생\n' + err)
+    return null
   })
   return result || null
 }
 
 
-export const addChat = async(id:string,chat:string,name:string) => {
-  const query = db.collection("list").doc(id).collection('chat').doc(getRandomUid()).set({chat,date:String(moment().format('YYMMDDHHmmssmsms'))})
+export const addChat = async(chatId:string,msg:string,uid:string) => {
+  const query = db.collection("list").doc(chatId).collection('chat').doc(getRandomUid()).set({msg,uid,date:String(moment().format('YYMMDDHHmmss'))})
   query.then(()=>{
     console.log("추가 성공")
   }).catch((err:any)=>{

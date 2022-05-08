@@ -1,6 +1,6 @@
 export interface IFriend {
-  readonly friend:string;
-  readonly id:string;
+  readonly uid:string;
+  readonly chatId:string;
 }
 
 export type TFriendList = IFriend[] | null | []
@@ -8,13 +8,12 @@ export type TFriendList = IFriend[] | null | []
 export interface IProfile {
   readonly name:string;
   readonly img:string;
-  readonly uid?:string;
-  readonly friendId:string;
+  readonly uid:string;
 }
 
 export interface IChat {
-  readonly chat:string;
+  readonly msg:string;
   readonly date:number;
-  readonly friendId:string;
+  readonly uid:string;
 }
 
