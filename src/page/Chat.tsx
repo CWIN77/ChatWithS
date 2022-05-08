@@ -137,8 +137,8 @@ const TopProfile = styled.img`
 `
 const MsgProfile = styled.img`
   border-radius: 100px;
-  width:46px;
-  height:46px;
+  width:42px;
+  height:42px;
   padding:6px;
   margin:2px;
   margin-left: 8px;
@@ -149,8 +149,7 @@ const ThumbnailProfile = styled.div`
   border-radius: 100px;
   width:42px;
   height:42px;
-  padding: 2px;
-  margin:12px;
+  margin:14px;
   margin-top: 8px;
   margin-bottom: 8px;
   background-color: #888888;
@@ -160,6 +159,8 @@ const Chatting = styled.div`
   width:100%;
   display:flex;
   align-items: center;
+  margin-top: 1px;
+  margin-bottom: 1px;
 `
 const Message = styled.h4`
   word-break:break-all;
