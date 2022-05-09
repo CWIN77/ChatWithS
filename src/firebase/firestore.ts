@@ -70,9 +70,30 @@ export const getChat = async(id:string):Promise<IChat[] | "noData" | null> => {
 
 export const addChat = async(chatId:string,msg:string,uid:string) => {
   const query = db.collection("list").doc(chatId).collection('chat').doc(getRandomUid()).set({msg,uid,date:String(moment().format('YYMMDDHHmmss'))})
-  query.then(()=>{
-    console.log("추가 성공")
-  }).catch((err:any)=>{
+  query.catch((err:any)=>{
     console.log(err)
+  })
+}
+
+export const chatListener = async(chatId:string,setData:React.Dispatch<React.SetStateAction<IChat[] | "noData" | null>>) => {
+  const query = db.collection("list").doc(chatId).collection("chat").orderBy("date", "desc").limit(300)
+  query.onSnapshot((snapshot) => {
+    const dataArray:IChat[] = [];
+    snapshot.forEach((doc:any) => {
+      if(dataArray !== null && typeof dataArray === "object") dataArray.unshift(doc.data());
+    })
+    setData(dataArray)
+  })
+}
+
+export const addFriend = async(uid:string)=>{
+  const user = getCurrentUser();
+  const query = db.collection('list').doc(getRandomUid()).set({users:[uid,user?.uid]})
+  query.then(()=>{
+    sessionStorage.clear()
+    alert("친구 추가 성공")
+    window.location.reload();
+  }).catch(()=>{
+    alert("친구 추가 실패")
   })
 }

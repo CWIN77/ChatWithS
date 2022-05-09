@@ -1,25 +1,32 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useParams } from 'react-router';
 import styled from 'styled-components'
 import { getCurrentUser } from '../firebase/auth';
-import { getChat,addChat } from "../firebase/firestore"
+import { addChat, chatListener } from "../firebase/firestore"
 import { IChat } from '../type/interface'
 import {ReactComponent as SvgBackBtn} from '../svg/backBtn.svg'
 import {ReactComponent as SvgSendBtn} from '../svg/sendBtn.svg'
 import { Link } from 'react-router-dom';
+import firebase from "../firebase/config";
+const db = firebase.firestore();
 
 function Chat() {
   const {id} = useParams();
   const [data,setData] = useState<IChat[] | null | "noData">(null)
   const me = getCurrentUser()
   const opp = JSON.parse(sessionStorage.getItem("opp") || JSON.stringify(null))
-  const backIcon = {fill:"#474747",style:{padding:8,margin:12,marginLeft:16},width:34,height:34}
-  const sendIcon = {fill:"#F5F5F5",width:28,height:28}
+  const backIcon = {fill:"#474747",style:{padding:8,margin:6,marginLeft:12},width:32,height:32}
+  const sendIcon = {fill:"#F5F5F5",width:26,height:26}
   const [sendMsgText,setSendMsgText] = useState('')
+  const chatListRef:any = useRef(null)
 
   useEffect(()=>{
-    if( id !== undefined ) getChat(id).then((result)=>{setData(result)})
+    if( id !== undefined && data === null ) chatListener(id,setData);
   },[])
+
+  useEffect(()=>{
+    if(data && window.scrollY < chatListRef.current.clientHeight) window.scrollTo(0,chatListRef.current.scrollHeight)
+  },[data])
 
   return (
     <Container>
@@ -30,8 +37,7 @@ function Chat() {
           <TopProfile src={opp?.img} />
         </div>
       </Top>
-      
-      <span style={{paddingTop:90,paddingBottom:90,width:'100%',minHeight:"calc(100% - 180px)"}}>
+      <span ref={chatListRef} style={{paddingTop:70,paddingBottom:75,width:'100%',minHeight:"calc(100% - 145px)"}}>
         {
           data === null
           ? (
@@ -116,7 +122,7 @@ const Container = styled.div`
   min-height:100%;
 ` 
 const Top = styled.nav`
-  position: absolute;
+  position: fixed;
   background-color:${bright};
   display:flex;
   z-index: 2;
@@ -131,8 +137,9 @@ const TopProfile = styled.img`
   width:36px;
   height:36px;
   padding:6px;
-  margin:12px;
-  margin-right:4px;
+  margin:6px;
+  margin-left: 8px;
+  margin-right:2px;
   filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.3));
 `
 const MsgProfile = styled.img`
@@ -173,12 +180,15 @@ const Message = styled.h4`
   max-width: 50vw;
 `
 const SendMsg = styled.div`
-  width:calc(100% - 48px);
+  width:calc(100% - 36px);
   display:flex;
   justify-content: center;
   position:fixed;
   bottom:0px;
-  margin: 24px;
+  padding: 18px;
+  padding-top: 2px;
+  border: none;
+  background-color: ${bright};
 `
 const SendMsgInput = styled.input`
   background-color:#474747;

@@ -7,7 +7,7 @@ import {ReactComponent as SvgFile} from '../svg/file.svg'
 import {ReactComponent as SvgAddFriend} from '../svg/addFriend.svg'
 import {ReactComponent as SvgMessageCopy} from '../svg/message_copy.svg'
 
-import { getFriendList } from "../firebase/firestore"
+import { addFriend, getFriendList } from "../firebase/firestore"
 import { signOut,getCurrentUser } from "../firebase/auth"
 import { useEffect, useState } from 'react'
 import {TFriendList} from '../type/interface'
@@ -18,6 +18,8 @@ function Home() {
   const user = getCurrentUser()
   const [isCopy,setIsCopy] = useState(false)
   const [friendList,setFriendList] = useState<TFriendList>(null)
+  const [isAddFriend,setIsAddFriend] = useState(false)
+  const [addFriendText,setAddFriendText] = useState('')
 
   useEffect(()=>{
     if(friendList === null) getFriendList().then((result)=>{setFriendList(result)})
@@ -38,9 +40,22 @@ function Home() {
       <div><SvgMessageCopy style={{display:isCopy?'flex':'none',position:'absolute',marginLeft:-48}} /></div>
       <div>
         <SvgSearch {...svgProp} />
-        <SvgAddFriend {...svgProp} />
+        <SvgAddFriend onClick={()=>{
+          if(addFriendText === ''){
+            setIsAddFriend(!isAddFriend)
+          }else if(addFriendText !== '' && isAddFriend){
+            addFriend(addFriendText)
+            setAddFriendText('')
+          }
+        }} {...svgProp} />
         <SvgFile {...svgProp} />
       </div>
+      {
+        isAddFriend &&
+        <AddFriendContainer>
+          <AddFriendInput value={addFriendText} onChange={(e)=>{setAddFriendText(e.target.value)}} placeholder='친구 ID 입력' type="text"></AddFriendInput>
+        </AddFriendContainer>
+      }
       {
         friendList !== []
         ? friendList?.map((friend,key)=>{
@@ -53,7 +68,7 @@ function Home() {
   )
 }
 
-// const bright = '#F5F5F5';
+const bright = '#F5F5F5';
 const dark = '#474747';
 
 const Container = styled.div`
@@ -82,6 +97,24 @@ const UserId = styled.h3`
   margin-bottom: 8px;
   padding: 2px;
   cursor: pointer;
+`
+const AddFriendContainer = styled.div`
+  width:100%;
+  display:flex;
+  align-items: center;
+  justify-content: center;
+`
+const AddFriendInput = styled.input`
+  padding: 12px;
+  padding-left: 16px;
+  padding-right: 16px;
+  width:35vw;
+  font-size: 14px;
+  background-color: ${dark};
+  color:${bright};
+  border-radius: 8px;
+  margin: 8px;
+  margin-top: 4px;
 `
 
 export default Home
